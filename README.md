@@ -1,2 +1,2 @@
 # open-monitoring-system-client
-Client Agent to Open Monitoring System
+Client Agent to Open Monitoring System in C#
