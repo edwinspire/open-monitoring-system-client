@@ -1,0 +1,17 @@
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/obj/Debug/.NETFramework,Version=v4.6.2.AssemblyAttribute.cs
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Comunicator.exe.config
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Comunicator.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Comunicator.exe
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/obj/Debug/Comunicator.exe
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/obj/Debug/Comunicator.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/WebSocket4Net.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Newtonsoft.Json.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/EngineIoClientDotNet.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/SocketIoClientDotNet.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Mono.Data.Sqlite.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/System.Data.Portable.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/System.Transactions.Portable.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/liboms.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/liboms.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/libping.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/libping.pdb

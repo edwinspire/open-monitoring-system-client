@@ -1,0 +1,13 @@
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/WebSocket4Net.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/Newtonsoft.Json.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/EngineIoClientDotNet.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/SocketIoClientDotNet.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/liboms.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/liboms.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/libping.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/libping.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/ping.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/bin/Debug/ping.exe
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/obj/Debug/ping.exe
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/ping/obj/Debug/ping.pdb
