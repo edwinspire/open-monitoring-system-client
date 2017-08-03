@@ -33,13 +33,50 @@ using System.Net.Sockets;
 namespace OpenMonitoringSystem
 {
 
+	public struct ConfigParam{
+		public string QueuePath;
+		public string ConfigPath;
+	}
+
 	public abstract class BaseObject{
 
-		public abstract string ObjectName { get;}
+		//public abstract string ObjectName { get;}
 		public abstract void getLocalParams();
+		public ConfigParam BaseConfig = new ConfigParam();
 
 		public BaseObject(){
+			ReadConfig();
+		}
 
+		public string queue_dir(){
+			return Path.Combine(current_path(), "queue");
+		}
+
+		private void ReadConfig(){
+			var SaveConfig = false;
+			this.BaseConfig = getAnyLocalConfigObject<ConfigParam>("BaseConfig");
+			if(string.IsNullOrEmpty(this.BaseConfig.ConfigPath)){
+				this.BaseConfig.ConfigPath = config_dir ();
+				SaveConfig = true;
+			}
+			if(string.IsNullOrEmpty(this.BaseConfig.QueuePath)){
+				this.BaseConfig.QueuePath = queue_dir ();
+				SaveConfig = true;
+			}
+
+			if(SaveConfig){
+				saveObjectConfig<ConfigParam> (this.BaseConfig, "BaseConfig");
+			}
+
+			CreateDir (this.BaseConfig.QueuePath);
+			CreateDir (this.BaseConfig.ConfigPath);
+ 			getLocalParams ();
+		}
+
+		public void CreateDir(string path){
+			if (!Directory.Exists  (path)) {
+				System.IO.Directory.CreateDirectory (path);
+			}
 		}
 
 		public static T getAnyLocalObject<T>(string full_path)  where T : new(){
@@ -53,6 +90,15 @@ namespace OpenMonitoringSystem
 			return DeserializeObject<T>(jsonobj);
 		}
 
+		public static T getAnyLocalConfigObject<T>(string name, bool replace = true)  where T : new(){
+
+			return getAnyLocalObject<T>(name, config_dir(), replace);
+		}
+
+		public T getConfigObject<T>(string name, bool replace = true) where T : new(){
+			return getAnyLocalObject<T>(name, this.BaseConfig.ConfigPath, replace);
+		}
+
 		public static T getAnyLocalObject<T>(string name, string path, bool replace = true)  where T : new(){
 
 			if (string.IsNullOrEmpty (name)) {
@@ -63,8 +109,8 @@ namespace OpenMonitoringSystem
 				path = current_path ();
 			}
 
-			if (!Directory.Exists (Path.GetDirectoryName (path))) {
-				System.IO.Directory.CreateDirectory (Path.GetDirectoryName (path));
+			if (!Directory.Exists  (path)) {
+				System.IO.Directory.CreateDirectory (path);
 			}
 				
 			var full_path = Path.Combine (path, name + ".json");
@@ -72,18 +118,18 @@ namespace OpenMonitoringSystem
 			return getAnyLocalObject <T>(full_path);
 		}
 
-		public T getLocalObject<T>() where T : new(){
-			var name = this.ObjectName;
-			if(string.IsNullOrEmpty(this.ObjectName)){
-				name = this.GetType ().Name;
-			}
-			var full_path = Path.Combine(current_path(), "config");
-			return getAnyLocalObject<T>(name, full_path, true);
-		}
+//		public T getLocalObject<T>() where T : new(){
+//			var name = this.ObjectName;
+//			if(string.IsNullOrEmpty(name)){
+//				name = this.GetType ().Name;
+//			}
+//			var full_path = Path.Combine(current_path(), "config");
+//			return getAnyLocalObject<T>(name, full_path, true);
+//		}
 
-		public T getLocalObject<T>(string full_path) where T : new(){
-			return getAnyLocalObject<T>(this.ObjectName, full_path, true);
-		}
+//		public T getLocalObject<T>(string full_path) where T : new(){
+//			return getAnyLocalObject<T>(this.ObjectName, full_path, true);
+//		}
 
 		public static string Md5(string text){
 			return FormsAuthentication.HashPasswordForStoringInConfigFile(text, "MD5");
@@ -94,10 +140,10 @@ namespace OpenMonitoringSystem
 		}
 
 		public void saveObjectConfig<T>(T obj, string name, bool replace = true){
-			if(!string.IsNullOrEmpty(name)){
+			if(string.IsNullOrEmpty(name)){
 				name = obj.GetType ().Name;
 			}
-			saveAnyLocalObject<T>(obj, name, config_path(), replace);
+			saveAnyLocalObject<T>(obj, name, config_dir(), replace);
 
 			/*
 			var dir = Path.Combine(current_path(), subfolder);
@@ -154,6 +200,14 @@ namespace OpenMonitoringSystem
 				
 		}
 
+		public static void saveAnyLocalConfigObject<T>(T obj, string name, bool replace = true){
+			 saveAnyLocalObject<T>(obj, name, config_dir(), replace);
+		}
+
+		public void saveConfigObject<T>(T obj, string name, string path, bool replace = true){
+			 saveAnyLocalObject<T>(obj, name, this.BaseConfig.ConfigPath, replace);
+		}
+
 		public static void saveAnyLocalObject<T>(T obj, string name, string path, bool replace = true){
 
 			if(string.IsNullOrEmpty(name)){
@@ -163,10 +217,7 @@ namespace OpenMonitoringSystem
 			if(string.IsNullOrEmpty(path)){
 				path = current_path();
 			}
-
-			if (!Directory.Exists(path)) {
-				System.IO.Directory.CreateDirectory (path);
-			}
+				
 			saveAnyLocalObject <T>(obj, Path.Combine(path, name+".json"));
 		}
 
@@ -180,7 +231,7 @@ namespace OpenMonitoringSystem
 		public static string current_path(){
 			return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 		}
-		public static string config_path(){
+		public static string config_dir(){
 			return Path.Combine(current_path(), "config");
 		}
 

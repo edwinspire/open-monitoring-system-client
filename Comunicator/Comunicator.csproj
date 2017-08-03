@@ -45,15 +45,6 @@
       <HintPath>..\packages\SocketIoClientDotNet.0.9.13\lib\net45\SocketIoClientDotNet.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="Mono.Data.Sqlite">
-      <HintPath>..\packages\Mono.Data.Sqlite.Portable.1.0.3.5\lib\net4\Mono.Data.Sqlite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.Portable">
-      <HintPath>..\packages\Mono.Data.Sqlite.Portable.1.0.3.5\lib\net4\System.Data.Portable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Transactions.Portable">
-      <HintPath>..\packages\Mono.Data.Sqlite.Portable.1.0.3.5\lib\net4\System.Transactions.Portable.dll</HintPath>
-    </Reference>
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
@@ -66,14 +57,9 @@
       <Project>{ADE5A3E2-C99B-4A0A-9A53-D7189F1BA979}</Project>
       <Name>liboms</Name>
     </ProjectReference>
-    <ProjectReference Include="..\libping\libping.csproj">
-      <Project>{ADE5A3E2-C99B-4A0A-9A53-D7189F1BA978}</Project>
-      <Name>libping</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="app.config" />
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

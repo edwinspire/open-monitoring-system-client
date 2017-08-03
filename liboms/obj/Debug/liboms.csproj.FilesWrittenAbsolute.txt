@@ -1,5 +1,4 @@
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
-/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/liboms.dll.config
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/liboms.pdb
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/liboms.dll
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/obj/Debug/liboms.dll

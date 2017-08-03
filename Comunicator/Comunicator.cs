@@ -38,11 +38,11 @@ namespace OpenMonitoringSystem
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine ("Start Comunicator!", args.ToString());
+			Console.WriteLine ("Start Comunicator Open Monitoring System!", args.ToString());
 
-			var List = new List<Client.Agent> ();
-		/*	var a1 = new Ping ();
-			var a2 = new Ping ();
+			//var List = new List<Client.Agent> ();
+			//var a1 = new  OpenMonitoringSystem.Client.Ping ();
+			/* var a2 = new Ping ();
 			var a3 = new Ping ();
 			var a4 = new Ping ();
 
@@ -52,21 +52,21 @@ namespace OpenMonitoringSystem
 			List.Add (a3);
 			List.Add (a4);
 			*/
-
+			//List.Add (a1);
 			var Comunic = new Client.Comunicator ();
 
-			Comunic.Connect (List);
+			Comunic.Connect ();
 
-			var maxMinutes = 60;
+			var maxMinutes = 600;
 
 			while(maxMinutes > 0){
-				Comunic.SendByWS ();
+			//	Comunic.SendByWS ();
 				Thread.Sleep (5000);	
 			//	Console.WriteLine (maxMinutes.ToString());
 				maxMinutes--;
 			}
 
-		//	Console.ReadLine();
+			//Console.ReadLine();
 
 		}
 

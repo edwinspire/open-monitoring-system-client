@@ -42,10 +42,10 @@ namespace OpenMonitoringSystem
 
 	public struct PingReturn{public long roundtriptime; public string status; public string from; public string to;};
 
-	public class Ping:OpenMonitoringSystem.Client.Agent{
+		public class Ping:OpenMonitoringSystem.Client.BaseBot{
 		public PingParam Param = new PingParam();
-		public override string ObjectName { get { return "Ping"; } }
-		public override string Service { get { return "events"; } }
+		//public override string ObjectName { get { return "Ping"; } }
+			public override string Service { get; set; }
 
 		public override List<QueueItem> Run(){
 
@@ -142,7 +142,7 @@ namespace OpenMonitoringSystem
 		}
 
 		public override void getLocalParams(){
-			this.Param = getAnyLocalObject <PingParam>("PingParam", config_path());
+			//this.Param = getAnyLocalObject <PingParam>("PingParam", config_path());
 			this.interval = this.Param.interval;
 		}
 

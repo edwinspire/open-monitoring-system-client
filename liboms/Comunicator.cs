@@ -33,7 +33,6 @@ using Quobject.SocketIoClientDotNet.Client;
 using System.Data;
 using System.Linq;
 using Newtonsoft.Json.Linq;
-using System.Dynamic;
 
 namespace OpenMonitoringSystem
 {
@@ -42,12 +41,23 @@ namespace OpenMonitoringSystem
 
 	namespace Client{
 
-		public struct ConnectionParameters{
+		public struct CommunicatorConfig{
 			public string Server;
 			public string ServerBackup;
-			public string DeviceKey;
+			public string Id;
+			public string Pwd;
 			public bool secure;
 		}
+
+		public struct Device{
+			//public string Server;
+			//public string ServerBackup;
+			public string Key;
+			public string ID;
+			//public bool secure;
+		}
+
+
 
 		/*
 		public struct ComunicatorParam{
@@ -70,8 +80,9 @@ namespace OpenMonitoringSystem
 		*/
 
 		public struct WSSReturn{
-			public string service;
+			public string Service;
 			public string DeviceKey;
+			public string Message;
 			public System.Collections.Generic.List<string> Return;
 		}
 
@@ -83,22 +94,57 @@ namespace OpenMonitoringSystem
 			public System.Collections.Generic.Dictionary<string, List<string>> datas;
 		}
 
+//		public struct QueueStatus{
+//			public DateTime Datetime;
+//			public string idQueue;
+//		}
+
 		public class Comunicator:BaseObject{
 
-			public ConnectionParameters CParam = new ConnectionParameters();
-			public override string ObjectName { get { return "Comunicator"; } }
+			public CommunicatorConfig CConfig = new CommunicatorConfig();
+			//public override string ObjectName { get { return "Comunicator"; } }
 			public Quobject.SocketIoClientDotNet.Client.Socket socket;
 			private string token = "qwerty1234";
 			public event EventHandler OnReady;
 			public ShippingQueue Queue = new ShippingQueue();
+			public Device CDevice = new Device();
+			//public CommunicatorConfig Config = new CommunicatorConfig();
 
 			public Comunicator(){
 
-				this.CParam.Server = "http://localhost";
+				this.Queue.ResetMessageToSend ();
+				this.watchFiles ();
+				//this.CParam.Server = "http://localhost";
 				//this.Param.idequipment = 0;
-				this.CParam.DeviceKey = "abcdefghijklmnopqrstuvwzyz";
+				//this.CParam.DeviceKey = "abcdefghijklmnopqrstuvwzyz";
 				//this.Param.service = "events.receiver";
-				this.CParam = getLocalObject <ConnectionParameters>(); //this.Param.getLocalObject <ComunicatorParam>();
+				//this.CParam = getLocalObject <ConnectionParameters>(); //this.Param.getLocalObject <ComunicatorParam>();
+			}
+
+			private void watchFiles()
+			{
+				FileSystemWatcher watcher = new FileSystemWatcher();
+				watcher.InternalBufferSize = 16385;
+				watcher.IncludeSubdirectories = true;
+				//watcher.EnableRaisingEvents = true;
+				watcher.Path = this.Queue.queue_dir();
+				watcher.NotifyFilter = NotifyFilters.CreationTime;
+				watcher.Filter = "*.json";
+				watcher.Created += new FileSystemEventHandler(OnCreated);
+				watcher.EnableRaisingEvents = true;
+			}
+
+			private void OnCreated(object source, FileSystemEventArgs e)
+			{
+				//Console.WriteLine (e.FullPath);
+				Console.WriteLine (e.ChangeType.ToString());
+//				Console.WriteLine (e.Name);
+				//Console.WriteLine ("--> "+Path.GetDirectoryName(e.FullPath));
+				if (this.token.Length > 10) {
+					this.EmitMessage (this.Queue.ToSend ());	
+				} else {
+					Console.WriteLine ("No nay un token valido");
+				}
 			}
 
 			private void EmitOnReady()
@@ -113,52 +159,26 @@ namespace OpenMonitoringSystem
 			}
 
 
-			private void QueueRemove(WSSReturn Return){
+			private void QueueAsSent(WSSReturn Return){
 
 				Console.WriteLine (Return.Return.Count.ToString()+" mensajes para eliminar de la cola.");
 				foreach(var q in Return.Return){
-					this.Queue.Remove(Return.service, Return.DeviceKey, q);
+					this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q, QueueMessageStatus.Sending, QueueMessageStatus.Sent);
 				}
 
 				Console.WriteLine ("Ok");
 			}
 
-			private List<EventData> QueueEventsRead(){
-
-				var R = new List<EventData>();
-
-
-
-				/*
-				var connStr = "Data Source="+Path.Combine (current_path (), "config", "comunicator.s3")+"; Version=3;";
-
-				using(var conn = new SQLiteConnection(connStr))
-				{
-					using(var cmd = new SQLiteCommand("SELECT datas FROM eventdata WHERE sent = 0;", conn)){
-
-						conn.Open();
-
-						using (var rdr = cmd.ExecuteReader())
-						{
-							while (rdr.Read()) 
-							{
-								var edata = DeserializeObject<EventData>(rdr.GetValue(0).ToString());
-								R.Add (edata);
-							}         
-						}
-
-						conn.Close();
-					}
-				}
-
-				Console.WriteLine ("> Se enviarán "+R.Count.ToString()+" eventos.");
-				*/
-				return R;
-			}
+		
 
 			public void SendByWS(){
-				this.EmitMessage (this.Queue.getQueue ());
+				if (this.token.Length > 10) {
+					this.EmitMessage (this.Queue.ToSend ());
+				} else {
+					Console.WriteLine ("Token "+this.token+" no valido");
+				}
 			}
+				
 
 			public void SendByHTTP(){
 				//this.SendByHTTP(this.queue.getQueue ());
@@ -189,16 +209,20 @@ namespace OpenMonitoringSystem
 				this.queue.Add(e);
 			}
 			*/
-			private void connect(List<Agent> agents){
+			private void connect(List<BaseBot> agents){
 
 				this.getLocalParams ();
-				var host = "ws://" + this.CParam.Server;
+				var host = "ws://" + this.CConfig.Server;
 				var options = new IO.Options() { IgnoreServerCertificateValidation = true, AutoConnect = true, ForceNew = true };
 				//this.socket = IO.Socket("http://www.farmaenlace.com:8093");
-				if(this.CParam.secure == true){
-					host = "wss://" + this.CParam.Server;
+				if(this.CConfig.secure == true){
+					host = "wss://" + this.CConfig.Server;
 				}
 				this.socket = IO.Socket(host, options);
+
+				foreach(var a in agents){
+					a.StartInterval ();
+				}
 
 				/*
 				foreach(var a in agents){
@@ -222,8 +246,8 @@ namespace OpenMonitoringSystem
 						var R = DeserializeObject<WSSReturn>(rec);
 
 						if(!Object.ReferenceEquals(R, null)){
-			//				Console.WriteLine("< Se han guardado "+R.Count.ToString()+" mensajes.");
-							QueueRemove(R);
+							Console.WriteLine("< Se han guardado "+R.Return.Count.ToString()+" mensajes. "+R.Message);
+							QueueAsSent(R);
 						}
 
 						//socket.Disconnect();
@@ -231,31 +255,31 @@ namespace OpenMonitoringSystem
 
 				socket.On("connection", (e) =>
 					{
-						Console.WriteLine(this.CParam.Server);
+						Console.WriteLine(this.CConfig.Server);
 						Console.WriteLine(e);
 						this.token = "";
-						socket.Emit("clogin", SerializeObject<ConnectionParameters>(this.CParam));
+						socket.Emit("clogin", SerializeObject<CommunicatorConfig>(this.CConfig));
 					});
 
 				socket.On("clogged", (e) =>
 					{
 						this.token = e.ToString();
 						Console.WriteLine("Se ha logueado...");
-						foreach(var a in agents){
-							a.StartInterval ();
-						}
+						this.SendByWS ();
 					});
 
 				socket.On("token_expired", (e) =>
 					{
 						this.token = "";
-						socket.Emit("clogin", SerializeObject<ConnectionParameters>(this.CParam));
+						socket.Emit("clogin", SerializeObject<CommunicatorConfig>(this.CConfig));
 					});
 
 
 				socket.On(Quobject.SocketIoClientDotNet.Client.Socket.EVENT_RECONNECT, () =>
 					{
 						Console.WriteLine("EVENT_RECONNECT");
+						this.token = "";
+						socket.Emit("clogin", SerializeObject<CommunicatorConfig>(this.CConfig));
 					});
 
 				socket.On(Quobject.SocketIoClientDotNet.Client.Socket.EVENT_MESSAGE, () =>
@@ -282,43 +306,34 @@ namespace OpenMonitoringSystem
 					});
 			}
 
-			public void  Connect(List<Agent> agents){
+			public void  Connect(List<BaseBot> agents){
 				Thread t = new Thread(()=>connect(agents));
 				t.Start();
 			}
+
+			public void Connect(){
+				this.Connect(new List<BaseBot>());
+			}
 				
-			public void SetFromArgs(string[] args){
-				if(args.Length > 1 && !String.IsNullOrEmpty(Convert.ToString(args[1]))){
-					this.CParam.Server = args [1];
-				}
 
-				/*
-				if(args.Length > 2 && !String.IsNullOrEmpty(Convert.ToString(args[2]))){
-					this.CParam.idequipment = int.Parse( args [2]);
-				}
-				if(args.Length > 4 && !String.IsNullOrEmpty(Convert.ToString(args[4]))){
-					this.CParam.service = args [4];
-				}
-				*/
-
-				if(args.Length > 3 && !String.IsNullOrEmpty(Convert.ToString(args[3]))){
-					this.CParam.DeviceKey = args [3];
-				}
-
-
-			}
-
-			public Comunicator(string server, int idequipment, string validator){
-
-				this.CParam.Server = server;
-				//this.CParam.idequipment = idequipment;
-				this.CParam.DeviceKey = validator;
-
-			}
 
 			public override void getLocalParams(){
-//				this.Param = this.getLocalObject <ComunicatorParam>();
-				this.CParam = getLocalObject <ConnectionParameters>(); //this.Param.getLocalObject <ComunicatorParam>();
+				//this.Queue.Param = getAnyLocalObject <QueueParam>("QueueParam", this.BaseConfig.ConfigPath);
+//				this.CParam = getConfigObject <Com>("ConnectionParameters"); 
+//			
+//				if (string.IsNullOrEmpty(this.CParam.Server))
+//				{
+//					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Server");
+//				}
+//
+//
+//				if (string.IsNullOrEmpty(this.CParam.DeviceKey))
+//				{
+//					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "DeviceKey");
+//				}
+//
+
+				//this.Param.getLocalObject <ComunicatorParam>();
 			}
 
 			public static string GetLocalIPAddress()
@@ -355,12 +370,12 @@ namespace OpenMonitoringSystem
 			{
 				var R = new List<string>();
 				var datas = JsonConvert.SerializeObject (ev);
-				var server = "http://"+this.CParam.Server + "/service/events/receiver/w/" + Md5(datas) + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/"+ev.Count.ToString();
+				var server = "http://"+this.CConfig.Server + "/service/events/receiver/w/" + Md5(datas) + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/"+ev.Count.ToString();
 
 				if(ev.Count > 0){
 					var	txt = Post(server, new NameValueCollection()
 						{
-							{ "DeviceKey", this.CParam.DeviceKey},
+							{ "DeviceKey", this.CDevice.Key},
 							{ "list_events", datas}
 						});
 
@@ -452,7 +467,7 @@ namespace OpenMonitoringSystem
 								StringWriter sw = new StringWriter (sb);
 
 								using (JsonWriter writer = new JsonTextWriter (sw)) {
-									writer.Formatting = Formatting.Indented;
+									//writer.Formatting = Formatting.Indented;
 
 									writer.WriteStartObject ();
 									writer.WritePropertyName ("DeviceKey");
@@ -462,13 +477,21 @@ namespace OpenMonitoringSystem
 
 									foreach (var serv in wss.datas) {
 
-										writer.WritePropertyName (serv.Key);
-										writer.WriteStartArray ();
-
+										//writer.WritePropertyName (serv.Key);
+										writer.WritePropertyName ("Request");
+										writer.WriteStartArray ();	
+											writer.WriteStartObject();
+											writer.WritePropertyName("Service");
+											writer.WriteValue(serv.Key);
+											writer.WritePropertyName("Datas");
+											writer.WriteStartArray ();
 										foreach (var data in serv.Value) {
-											writer.WriteRawValue (data.ToString ());	
+//										
+												writer.WriteRawValue (data.ToString ());	
 										}
-										//writer.WriteRawValue(sb1.ToString());
+											writer.WriteEnd ();
+										
+											writer.WriteEndObject ();
 										writer.WriteEnd ();
 									}
 
@@ -477,7 +500,7 @@ namespace OpenMonitoringSystem
 								}
 
 								var message = sb.ToString ();
-
+									Console.WriteLine("Enviando...");
 								this.socket.Emit ("wsservice", message);
 							} catch (Exception ex) {
 								Console.WriteLine (ex.Message);
@@ -510,65 +533,41 @@ namespace OpenMonitoringSystem
 				return SerializeObject<Dictionary<string, object>>(d);
 			}
 
-			public void EmitEvents(System.Collections.Generic.List<EventData> ev)
-			{
-				/*
-				if(!string.IsNullOrEmpty(this.token)){
+		
 
-					if(ev.Count > 0){
-						var E = new WSEvent ();
-						E.token = this.token;
-						E.idequipment = this.Param.idequipment;
-						E.validator = this.Param.validator;
-						E.events = ev;
-						try{
-							this.socket.Emit("cevents", SerializeObject<WSEvent>(E));
-						}catch(Exception ex){
-							Console.WriteLine (ex.Message);
-						}
-					}else{
-						Console.WriteLine ("La lista de eventos esta vacia...");
-					}
-
-				}else{
-					Console.WriteLine ("No esta logeado... No se puede emitir...");
-				}
-				*/
-			}
-
-			public T getRemoteObject<T>(string server, bool auto_save = true) where T : new(){
-
-				var R = new T();
-				if (String.IsNullOrEmpty (server) || String.IsNullOrEmpty (this.ObjectName)) {
-					throw new Exception("No ObjectName or server!");
-				}
-
-				server = this.CParam.Server + "/service/objects/view_equipment_service/r/" + ((int)DateTime.Now.Ticks).ToString () + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/" + this.ObjectName;
-
-					string r = Post(server, new NameValueCollection()
-						{
-						{ "DeviceKey", this.CParam.DeviceKey },
-						{ "validator", this.CParam.DeviceKey}
-						});
-
-					string pattern = @"\[\{\""object\"":(.*?)\}\]";
-
-					Regex rex = new Regex(pattern);
-					MatchCollection matches = rex.Matches(r);
-
-					if (matches.Count > 0) {
-						foreach (Match match in matches) {
-							R = DeserializeObject<T> (match.Groups [1].Value);
-						break;
-						}
-					}
-
-				if(auto_save){
-					this.saveObjectConfig (R, this.ObjectName, true);
-				}
-					
-				return R;
-			}
+//			public T getRemoteObject<T>(string server, bool auto_save = true) where T : new(){
+//
+//				var R = new T();
+//				if (String.IsNullOrEmpty (server) || String.IsNullOrEmpty (this.ObjectName)) {
+//					throw new Exception("No ObjectName or server!");
+//				}
+//
+//				server = this.CParam.Server + "/service/objects/view_equipment_service/r/" + ((int)DateTime.Now.Ticks).ToString () + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/" + this.ObjectName;
+//
+//					string r = Post(server, new NameValueCollection()
+//						{
+//						{ "DeviceKey", this.CParam.DeviceKey },
+//						{ "validator", this.CParam.DeviceKey}
+//						});
+//
+//					string pattern = @"\[\{\""object\"":(.*?)\}\]";
+//
+//					Regex rex = new Regex(pattern);
+//					MatchCollection matches = rex.Matches(r);
+//
+//					if (matches.Count > 0) {
+//						foreach (Match match in matches) {
+//							R = DeserializeObject<T> (match.Groups [1].Value);
+//						break;
+//						}
+//					}
+//
+//				if(auto_save){
+//					saveAnyLocalConfigObject (R, this.ObjectName, true);
+//				}
+//					
+//				return R;
+//			}
 	
 				
 
