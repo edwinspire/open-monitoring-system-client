@@ -60,7 +60,7 @@ namespace OpenMonitoringSystem
 			var maxMinutes = 600;
 
 			while(maxMinutes > 0){
-			//	Comunic.SendByWS ();
+				Comunic.SendByWS ();
 				Thread.Sleep (5000);	
 			//	Console.WriteLine (maxMinutes.ToString());
 				maxMinutes--;

@@ -103,19 +103,12 @@ namespace OpenMonitoringSystem
 				//this.Queue.Param = getAnyLocalObject <QueueParam>("QueueParam", this.BaseConfig.ConfigPath);
 				this.CDevice = getConfigObject <Device>("Device"); 
 
-//				if (string.IsNullOrEmpty(this.CDeviceServer))
-//				{
-//					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Server");
-//				}
-
-
 				if (string.IsNullOrEmpty(this.CDevice.Key))
 				{
 					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Key");
 				}
 
-
-				//this.Param.getLocalObject <ComunicatorParam>();
+			
 			}
 
 			private void  _Run(){
@@ -137,8 +130,8 @@ namespace OpenMonitoringSystem
 
 			public void Message(string QueueService, string DeviceKey, object Datas){
 				var q = new QueueItem();
-				q.QueueService = this.Service;
-				q.DeviceKey = this.CDevice.Key;
+				q.QueueService = QueueService;
+				q.DeviceKey = DeviceKey;
 				q.Datas = Datas;
 				this.Queue.Add(q);
 			}

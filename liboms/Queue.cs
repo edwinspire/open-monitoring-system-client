@@ -61,7 +61,8 @@ namespace OpenMonitoringSystem
 		public enum QueueMessageStatus{
 			NotSent = 0,
 			Sending = 1,
-			Sent = 2
+			Sent = 2,
+			Fail = 3
 		}
 
 	public class ShippingQueue:BaseObject
@@ -75,16 +76,6 @@ namespace OpenMonitoringSystem
 				getLocalParams ();				
 		}
 
-//			private void CheckPath(){
-//				if(string.IsNullOrEmpty(this.BaseConfig.QueuePath)){
-//					this.BaseConfig.QueuePath = this.queue_dir ();
-//				}
-//
-//				if(!Directory.Exists(this.BaseConfig.QueuePath)){
-//					Directory.CreateDirectory (this.BaseConfig.QueuePath);
-//				}
-//			}
-
 			public void DeleteSentMessages(){
 				var R = new Dictionary<string, JObject> ();
 
@@ -92,10 +83,14 @@ namespace OpenMonitoringSystem
 
 				foreach(var dir in Directory.GetDirectories(this.BaseConfig.QueuePath)){
 
+					// Obtengo los devices
 					DirectoryInfo d = new DirectoryInfo(dir);//Assuming Test is your Folder
+
 
 					foreach(var device in d.GetDirectories()){
 	
+						// Obtengo los Services
+						// TODO REVISAR
 						var fs = d.GetFileSystemInfos(QueueMessageStatus.Sent.ToString()+".*.json"); //Getting Text files
 						var orderedFiles = fs.OrderBy(f => f.CreationTime);
 						foreach (FileInfo file in orderedFiles) {
@@ -108,44 +103,62 @@ namespace OpenMonitoringSystem
 			}
 
 			public void ResetMessageToSend(){
-				var R = new Dictionary<string, JObject> ();
-			
-			//	CheckPath ();
+				
+				foreach (var dirservices in GetDirectoriesDevicesServices()) {
 
-				foreach(var dir in Directory.GetDirectories(this.BaseConfig.QueuePath)){
+					foreach (var finterface in dirservices.GetDirectories()) {
+						
+						foreach (var fqueue in finterface.GetDirectories(QueueMessageStatus.Sending.ToString())) {
 
-					DirectoryInfo d = new DirectoryInfo(dir);//Assuming Test is your Folder
+						var filter = "*.json";	
+							var files = fqueue.GetFiles (filter).Where (f => DateTime.Now > f.LastAccessTime.AddSeconds (this.Param.TimeOutResend)).OrderBy (f => f.CreationTime);
+						foreach (FileInfo file in files) {
+							try {
+								Console.WriteLine (file.FullName + " cambia de estado a " + QueueMessageStatus.NotSent.ToString ());
+									var file_into_sent = file.FullName.Replace (QueueMessageStatus.Sending.ToString (), QueueMessageStatus.Sent.ToString ());
 
-					foreach(var device in d.GetDirectories()){
-
-						var filter = QueueMessageStatus.Sending.ToString () + ".*.json";
-						var fs = device.GetFileSystemInfos(filter); //Getting Text files
-
-						var orderedFiles = fs.Where(f => f.CreationTime.AddSeconds(this.Param.TimeOutResend) < DateTime.Now).OrderBy (f => f.CreationTime);
-						foreach (FileInfo file in orderedFiles) {
-							file.MoveTo(file.FullName.Replace(QueueMessageStatus.Sending.ToString()+".", QueueMessageStatus.NotSent.ToString()+"."));
+									if(File.Exists(file_into_sent)){
+										// El archivo ya fue enviado, se lo debe borra de la carpeta se sending
+										file.Delete();
+									}else{
+										file.MoveTo (file.FullName.Replace (QueueMessageStatus.Sending.ToString (), QueueMessageStatus.NotSent.ToString ()));		
+									}
+										
+							} catch (Exception e) {
+								Console.WriteLine ("Error el archivo " + file.FullName + " no se puede mover porque ya existe. " + e.Message);
+							}
 						}
-
 					}
 
 				}
+
+				}
+
+	
+			}
+
+			private DirectoryInfo[] GetDirectoriesDevicesServices(){
+				var R = new List<DirectoryInfo>();
+				foreach(var dir in Directory.GetDirectories(this.BaseConfig.QueuePath)){
+					DirectoryInfo d = new DirectoryInfo(dir);//Assuming Test is your Folder
+					R.Add(d);
+				}
+				return R.ToArray();
 			}
 
 
 			public void ChangeStatusMessage(string service, string DeviceKey, string idQueue, QueueMessageStatus current_status, QueueMessageStatus new_status){
-				var prefix = "";
-				var path = "";
+			//	var prefix = "";
+				var path = Path.Combine(this.BaseConfig.QueuePath, DeviceKey, service, current_status.ToString (), idQueue+".json");
 
-			//	CheckPath ();
-
-				prefix = current_status.ToString () + ".";
-
-				path = Path.Combine(this.BaseConfig.QueuePath, DeviceKey, service, prefix+idQueue+".json");
+				CreateDir(Path.Combine(this.BaseConfig.QueuePath, DeviceKey, service, new_status.ToString ()));
 
 				if(File.Exists(path)){
-					File.Move(path, Path.Combine(this.BaseConfig.QueuePath, DeviceKey, service, new_status.ToString()+"."+idQueue+".json"));	
+					var new_path = Path.Combine (this.BaseConfig.QueuePath, DeviceKey, service, new_status.ToString (), idQueue + ".json");
+					File.Delete (new_path);
+					File.Move(path, new_path);	
 				}else{
-				//	Console.WriteLine ("El archivo "+path+" no existe y no se puede cambiar de estado de "+current_status.ToString()+" a "+new_status.ToString());
+					Console.WriteLine ("El archivo "+path+" no existe y no se puede cambiar de estado de "+current_status.ToString()+" a "+new_status.ToString());
 				}
 					
 		}
@@ -212,11 +225,20 @@ namespace OpenMonitoringSystem
 			}
 
 			public List<JObject> GetIndividual(DirectoryInfo dir, QueueMessageStatus status){
+				var R = new List<JObject>();
 
-				var fs = dir.GetFileSystemInfos(GetFilterByStatus(status)); //Getting Text files
-				var orderedFiles = fs.OrderBy(f => f.CreationTime);
 
-				return getJObject(orderedFiles);
+				foreach(var dir_status_queue in dir.GetDirectories(status.ToString())){
+
+					Console.WriteLine ("");
+
+					var fs = dir_status_queue.GetFileSystemInfos("*.json"); //Getting Text files
+					var orderedFiles = fs.OrderBy(f => f.CreationTime);
+					R.AddRange (getJObject(orderedFiles));
+
+				}
+				 
+				return R;
 			}
 
 			public List<JObject> GetIndividual(QueueMessageStatus status){
@@ -230,14 +252,9 @@ namespace OpenMonitoringSystem
 			}
 
 			private string GetFilterByStatus(QueueMessageStatus status){
-//				var _status = "*.json";
-//				if(status != QueueMessageStatus.NotSent){
-//					_status = status.ToString () + ".*.json";
-//				}
-				return status.ToString () + ".*.json";;
+				//return status.ToString () + ".*.json";
+				return status.ToString();
 			} 
-
-
 
 		public void Add(string QueueService, string DeviceKey, object Datas){
 			var q = new QueueItem();
@@ -275,17 +292,16 @@ namespace OpenMonitoringSystem
 			}
 				var path = Path.Combine (this.BaseConfig.QueuePath, item.DeviceKey, item.QueueService);
 
-				var fnameSent = QueueMessageStatus.Sent + "." + item.idQueue+".json";
-				var fnameNSending = QueueMessageStatus.Sending + "." + item.idQueue+".json";
+				var nfile =  item.idQueue+".json";
+				//var fnameNSending =  + "." + item.idQueue+".json";
 			//if(!string.IsNullOrEmpty(item.QueueService)){
 			//	services = item.QueueService;
 			//}
 
-				if(!File.Exists(Path.Combine(path, fnameSent)) || !File.Exists(Path.Combine(path, fnameNSending))     ){
-
+				if(!File.Exists(Path.Combine(path, QueueMessageStatus.Sent.ToString(), nfile)) || !File.Exists(Path.Combine(path, QueueMessageStatus.Sending.ToString(), nfile))     ){
+					path = Path.Combine (path, QueueMessageStatus.NotSent.ToString());
 					CreateDir (path);
-
-					var fnameNSent = Path.Combine(path, QueueMessageStatus.NotSent + "." + item.idQueue+".json");
+					var fnameNSent = Path.Combine(path, nfile);
 					saveAnyLocalObject<QueueItem> (item, fnameNSent, false);
 				}
 

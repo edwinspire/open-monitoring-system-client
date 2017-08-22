@@ -7,3 +7,4 @@
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/WebSocket4Net.dll
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/EngineIoClientDotNet.dll
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/SocketIoClientDotNet.dll
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/bin/Debug/OpenHardwareMonitorLib.dll

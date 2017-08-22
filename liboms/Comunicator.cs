@@ -44,7 +44,7 @@ namespace OpenMonitoringSystem
 		public struct CommunicatorConfig{
 			public string Server;
 			public string ServerBackup;
-			public string Id;
+			public int Id;
 			public string Pwd;
 			public bool secure;
 		}
@@ -70,20 +70,27 @@ namespace OpenMonitoringSystem
 		}
 		*/
 
-		/*
-		public struct WSEvent{
-			public string token;
-			public int idequipment;
-			public string validator;
-			public System.Collections.Generic.List<EventData> events;
+
+		public enum DeliverStatus{
+			Ok = 0,
+			Error = 2,
+			Duplicate = 1,
+			Unknow = -1,
 		}
-		*/
+
+
+		public struct WSReturnData{
+			public string idqueue;
+			public int? idreg;
+			public string message;
+			public DeliverStatus deliver_status;
+		}
 
 		public struct WSSReturn{
 			public string Service;
 			public string DeviceKey;
 			public string Message;
-			public System.Collections.Generic.List<string> Return;
+			public System.Collections.Generic.List<WSReturnData> Return;
 		}
 
 		public struct WSService{
@@ -161,9 +168,19 @@ namespace OpenMonitoringSystem
 
 			private void QueueAsSent(WSSReturn Return){
 
-				Console.WriteLine (Return.Return.Count.ToString()+" mensajes para eliminar de la cola.");
+				//Console.WriteLine (Return.Return.Count.ToString()+" mensajes para eliminar de la cola.");
 				foreach(var q in Return.Return){
-					this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q, QueueMessageStatus.Sending, QueueMessageStatus.Sent);
+					if (q.deliver_status == DeliverStatus.Ok) {
+						this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q.idqueue, QueueMessageStatus.Sending, QueueMessageStatus.Sent);
+					} else {
+						this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q.idqueue, QueueMessageStatus.Sending, QueueMessageStatus.Fail);
+					}
+					/*if(q.idreg != null && q.idreg > 0){
+						this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q.idqueue, QueueMessageStatus.Sending, QueueMessageStatus.Sent);
+					}else if(q.idreg == null && q.idreg < 1 && q.retry == false){
+						this.Queue.ChangeStatusMessage(Return.Service, Return.DeviceKey, q.idqueue, QueueMessageStatus.Sending, QueueMessageStatus.SentNotRetry);					
+					}
+					*/
 				}
 
 				Console.WriteLine ("Ok");
@@ -218,6 +235,8 @@ namespace OpenMonitoringSystem
 				if(this.CConfig.secure == true){
 					host = "wss://" + this.CConfig.Server;
 				}
+
+
 				this.socket = IO.Socket(host, options);
 
 				foreach(var a in agents){
@@ -243,7 +262,7 @@ namespace OpenMonitoringSystem
 				socket.On("wssreturn", (received) =>
 					{
 						var rec = received.ToString();
-						var R = DeserializeObject<WSSReturn>(rec);
+							var R = DeserializeObject<WSSReturn>(rec);
 
 						if(!Object.ReferenceEquals(R, null)){
 							Console.WriteLine("< Se han guardado "+R.Return.Count.ToString()+" mensajes. "+R.Message);
@@ -318,20 +337,23 @@ namespace OpenMonitoringSystem
 
 
 			public override void getLocalParams(){
+
+			//	public CommunicatorConfig CConfig = new CommunicatorConfig();
+
 				//this.Queue.Param = getAnyLocalObject <QueueParam>("QueueParam", this.BaseConfig.ConfigPath);
-//				this.CParam = getConfigObject <Com>("ConnectionParameters"); 
-//			
-//				if (string.IsNullOrEmpty(this.CParam.Server))
-//				{
-//					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Server");
-//				}
-//
-//
-//				if (string.IsNullOrEmpty(this.CParam.DeviceKey))
-//				{
-//					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "DeviceKey");
-//				}
-//
+				this.CConfig = getConfigObject <CommunicatorConfig>("CommunicatorConfig"); 
+			
+				if (string.IsNullOrEmpty(this.CConfig.Server))
+				{
+					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Server");
+				}
+
+
+				if (this.CConfig.Id <= 0)
+				{
+					throw new System.ArgumentException("Cannot be null or empty. Config Path: "+this.BaseConfig.ConfigPath, "Id");
+				}
+
 
 				//this.Param.getLocalObject <ComunicatorParam>();
 			}
@@ -349,56 +371,56 @@ namespace OpenMonitoringSystem
 				throw new Exception("Local IP Address Not Found!");
 			}
 
-			public static string Post(string uri, NameValueCollection pairs)
-			{
-				string response = "";
-				try{
-					using (WebClient client = new WebClient())
-					{
-						response = System.Text.Encoding.UTF8.GetString(client.UploadValues(uri, pairs));
-					}
-				}
-				catch(Exception e){
-					Console.WriteLine (e.Message);
-					return null;
-				}
+//			public static string Post(string uri, NameValueCollection pairs)
+//			{
+//				string response = "";
+//				try{
+//					using (WebClient client = new WebClient())
+//					{
+//						response = System.Text.Encoding.UTF8.GetString(client.UploadValues(uri, pairs));
+//					}
+//				}
+//				catch(Exception e){
+//					Console.WriteLine (e.Message);
+//					return null;
+//				}
+//
+//				return response;
+//			}
 
-				return response;
-			}
+//			public List<string> SendMessage(System.Collections.Generic.List<JObject> ev)
+//			{
+//				var R = new List<string>();
+//				var datas = JsonConvert.SerializeObject (ev);
+//				var server = "http://"+this.CConfig.Server + "/service/events/receiver/w/" + Md5(datas) + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/"+ev.Count.ToString();
+//
+//				if(ev.Count > 0){
+//					var	txt = Post(server, new NameValueCollection()
+//						{
+//							{ "DeviceKey", this.CDevice.Key},
+//							{ "list_events", datas}
+//						});
+//
+//					R = getEventsReceived (txt);
+//
+//				}
+//				return R;
+//			}
 
-			public List<string> SendMessage(System.Collections.Generic.List<JObject> ev)
-			{
-				var R = new List<string>();
-				var datas = JsonConvert.SerializeObject (ev);
-				var server = "http://"+this.CConfig.Server + "/service/events/receiver/w/" + Md5(datas) + "/" + ((int)DateTime.Now.Ticks).ToString () + "/"+ ((int)DateTime.Now.Ticks).ToString () + "/"+ev.Count.ToString();
-
-				if(ev.Count > 0){
-					var	txt = Post(server, new NameValueCollection()
-						{
-							{ "DeviceKey", this.CDevice.Key},
-							{ "list_events", datas}
-						});
-
-					R = getEventsReceived (txt);
-
-				}
-				return R;
-			}
-
-			private List<string> getEventsReceived(string response){
-				string pattern = @"\[\{\""fun_receiver_json\"":(.*?)\}\]";
-				var R = new List<string> ();
-				Regex rex = new Regex(pattern);
-				var txt = response.Replace ("\n", "").Replace (" ", "");
-				MatchCollection matches = rex.Matches(txt);
-
-				if (matches.Count > 0) {
-					foreach (Match match in matches) {
-						R = DeserializeObject<List<string>> (match.Groups [1].Value);
-					}
-				}
-				return R;
-			}
+//			private List<string> getEventsReceived(string response){
+//				string pattern = @"\[\{\""fun_receiver_json\"":(.*?)\}\]";
+//				var R = new List<string> ();
+//				Regex rex = new Regex(pattern);
+//				var txt = response.Replace ("\n", "").Replace (" ", "");
+//				MatchCollection matches = rex.Matches(txt);
+//
+//				if (matches.Count > 0) {
+//					foreach (Match match in matches) {
+//						R = DeserializeObject<List<string>> (match.Groups [1].Value);
+//					}
+//				}
+//				return R;
+//			}
 
 			private List<List<JObject>> MessageGroup(List<JObject> m){
 				return m
