@@ -1,0 +1,13 @@
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\Comunicator.exe.config
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\Comunicator.exe
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\Comunicator.pdb
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\EngineIoClientDotNet.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\liboms.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\Newtonsoft.Json.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\SocketIoClientDotNet.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\WebSocket4Net.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\liboms.pdb
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\bin\Debug\Newtonsoft.Json.xml
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\obj\Debug\Comunicator.csprojResolveAssemblyReference.cache
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\obj\Debug\Comunicator.exe
+E:\Documentos\Desarrollo\open-monitoring-system-client\Comunicator\obj\Debug\Comunicator.pdb

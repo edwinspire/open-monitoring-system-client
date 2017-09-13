@@ -148,7 +148,8 @@ namespace OpenMonitoringSystem
 //				Console.WriteLine (e.Name);
 				//Console.WriteLine ("--> "+Path.GetDirectoryName(e.FullPath));
 				if (this.token.Length > 10) {
-					this.EmitMessage (this.Queue.ToSend ());	
+                    //this.Queue.ResetMessageToSend();
+					//this.EmitMessage (this.Queue.ToSend ());	
 				} else {
 					Console.WriteLine ("No nay un token valido");
 				}
@@ -265,7 +266,7 @@ namespace OpenMonitoringSystem
 							var R = DeserializeObject<WSSReturn>(rec);
 
 						if(!Object.ReferenceEquals(R, null)){
-							Console.WriteLine("< Se han guardado "+R.Return.Count.ToString()+" mensajes. "+R.Message);
+							Console.WriteLine("< El servidor ha devuelto "+R.Return.Count.ToString()+" mensajes. "+R.Message);
 							QueueAsSent(R);
 						}
 
@@ -430,58 +431,90 @@ namespace OpenMonitoringSystem
 					.ToList();
 			}
 
-			public void EmitMessage(List<JObject> m)
+            private Dictionary<string, WSService> GroupSEmit(List<JObject> m) {
+
+                var devices = new System.Collections.Generic.Dictionary<string, WSService>();
+
+
+                try
+                {
+
+
+                    foreach (var a in MessageGroup(m))
+                {
+
+                    foreach (var b in a)
+                    {
+                        var service = b.GetValue("QueueService").ToString();
+                        var key = b.GetValue("DeviceKey").ToString();
+                        var idQueue = b.GetValue("idQueue").ToString();
+                        var datas = setIdQueueToData(idQueue, b.GetValue("Datas").ToString());
+
+                        var sk = key + "-" + service;
+
+                        if (!devices.ContainsKey(sk))
+                        {
+                            var ws = new WSService();
+                            ws.datas = new Dictionary<string, List<string>>();
+                            ws.DeviceKey = key;
+                            ws.token = this.token;
+                            var lism = new List<string>();
+
+                            lism.Add(datas);
+                            ws.datas.Add(service, lism);
+                            devices.Add(sk, ws);
+                        }
+                        else
+                        {
+                            if (devices[sk].datas.ContainsKey(service))
+                            {
+                                devices[sk].datas[service].Add(datas);
+                            }
+                            else
+                            {
+                                var lism = new List<string>();
+                                lism.Add(datas);
+                                devices[sk].datas.Add(service, lism);
+                            }
+                        }
+
+                    }
+
+                }
+
+            } catch (Exception e) {
+							Console.WriteLine(e.ToString());
+						}
+                return devices;
+            }
+
+            public void EmitMessage(List<JObject> m)
+            {
+                Console.WriteLine(">> Mensajes para emitir " +m.Count.ToString());
+                var G = new List<JObject>();
+                foreach (var message in m) {
+                    G.Add(message);
+                    if (G.Count == 200) {
+                        this.GroupMessages(G);
+                        G.Clear();
+                    }
+
+                }
+
+                this.GroupMessages(G);   
+            }
+
+                private void GroupMessages(List<JObject> m)
 			{
 
-				if(this.socket != null){
+                Console.WriteLine(">> Emitiendo " + m.Count.ToString());
+
+                if (this.socket != null){
 				if (!string.IsNullOrEmpty (this.token)) {
 
 					if (m.Count > 0) {
 
-						var devices = new System.Collections.Generic.Dictionary<string, WSService> ();
-
-						try {
-
-							foreach (var a in MessageGroup(m)) {
-
-								foreach (var b in a) {
-									var service = b.GetValue ("QueueService").ToString ();
-									var key = b.GetValue ("DeviceKey").ToString ();
-										var idQueue = b.GetValue ("idQueue").ToString();
-										var datas = setIdQueueToData(idQueue, b.GetValue ("Datas").ToString());
-
-									var sk = key + "-" + service;
-
-									if (!devices.ContainsKey (sk)) {
-										var ws = new WSService ();
-										ws.datas = new Dictionary<string, List<string>> ();
-										ws.DeviceKey = key;
-										ws.token = this.token;
-										var lism = new List<string> ();
-										
-											lism.Add (datas);
-										ws.datas.Add (service, lism);
-										devices.Add (sk, ws);
-									} else {
-										if (devices [sk].datas.ContainsKey (service)) {
-											devices [sk].datas [service].Add (datas);
-										} else {
-											var lism = new List<string> ();
-											lism.Add (datas);
-											devices [sk].datas.Add (service, lism);
-										}
-									}
-
-								}
-
-							}
-
-						} catch (Exception e) {
-							Console.WriteLine (e.Message);
-						}
-
-
-						foreach (var item in devices) {
+						foreach (var item in this.GroupSEmit(m)) {
 							try {
 								var wss = item.Value;
 
@@ -522,10 +555,10 @@ namespace OpenMonitoringSystem
 								}
 
 								var message = sb.ToString ();
-									Console.WriteLine("Enviando...");
+									//Console.WriteLine("Enviando...");
 								this.socket.Emit ("wsservice", message);
 							} catch (Exception ex) {
-								Console.WriteLine (ex.Message);
+								Console.WriteLine (ex.ToString());
 							}
 						}
 

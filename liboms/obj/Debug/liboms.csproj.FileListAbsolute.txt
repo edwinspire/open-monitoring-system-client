@@ -1,0 +1,11 @@
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\liboms.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\liboms.pdb
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\EngineIoClientDotNet.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\Newtonsoft.Json.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\OpenHardwareMonitorLib.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\SocketIoClientDotNet.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\WebSocket4Net.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\bin\Debug\Newtonsoft.Json.xml
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\obj\Debug\liboms.csprojResolveAssemblyReference.cache
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\obj\Debug\liboms.dll
+E:\Documentos\Desarrollo\open-monitoring-system-client\liboms\obj\Debug\liboms.pdb

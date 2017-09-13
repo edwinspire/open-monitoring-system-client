@@ -84,10 +84,23 @@ namespace OpenMonitoringSystem
 			if (!File.Exists(full_path))
 			{
 				saveAnyLocalObject<T> (new T(), full_path, true);
-			}
-				
-			string jsonobj = File.ReadAllText(full_path);
-			return DeserializeObject<T>(jsonobj);
+            }
+            try {
+
+                using (var fileStream = new FileStream(full_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+                    using (var textReader = new StreamReader(fileStream))
+                    {
+                        var jsonobj = textReader.ReadToEnd();
+                        //string jsonobj = File.ReadAllText(full_path);
+                        return DeserializeObject<T>(jsonobj);
+                    }
+                }
+                
+                
+            } catch (Exception e) {
+                return new T();
+            }
+			
 		}
 
 		public static T getAnyLocalConfigObject<T>(string name, bool replace = true)  where T : new(){
@@ -195,7 +208,7 @@ namespace OpenMonitoringSystem
 					File.WriteAllText (full_path, ser_obj);	
 				}
 			}catch(Exception e){
-				Console.WriteLine (e.Message);
+				Console.WriteLine (e.ToString());
 			}
 				
 		}

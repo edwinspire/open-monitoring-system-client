@@ -9,3 +9,5 @@
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/SocketIoClientDotNet.dll
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/liboms.dll
 /home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/liboms.pdb
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/obj/Debug/.NETFramework,Version=v4.6.1.AssemblyAttribute.cs
+/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/Comunicator/bin/Debug/Comunicator.exe.config

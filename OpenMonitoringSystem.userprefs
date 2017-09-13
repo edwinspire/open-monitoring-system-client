@@ -1,21 +1,27 @@
 ﻿<Properties StartupItem="Comunicator/Comunicator.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Comunicator/Comunicator.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="liboms/Queue.cs">
     <Files>
-      <File FileName="liboms/Comunicator.cs" Line="1" Column="1" />
-      <File FileName="liboms/Queue.cs" Line="1" Column="1" />
-      <File FileName="Comunicator/Comunicator.cs" Line="52" Column="15" />
+      <File FileName="liboms/Comunicator.cs" Line="533" Column="7" />
+      <File FileName="liboms/Queue.cs" Line="38" Column="28" />
+      <File FileName="Comunicator/Comunicator.cs" Line="46" Column="25" />
       <File FileName="liboms/Bot.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="558" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="556" column="1" />
       <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="417" column="1" />
       <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="409" column="1" />
-      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="295" column="1" />
-      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="95" column="1" />
-      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="128" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="301" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="101" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="134" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="174" column="30" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="176" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="267" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Queue.cs" line="212" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="278" column="1" />
+      <Breakpoint file="/home/edwinspire/Documentos/Desarrollo/open-monitoring-system-client/liboms/Comunicator.cs" line="233" column="1" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>

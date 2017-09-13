@@ -32,6 +32,12 @@ namespace OpenMonitoringSystem
 
 	namespace Client
 	{
+		public struct header{
+			public string token;
+			public string service;
+			public string device_key;
+		}
+
 
 		public class QueueItem :ICloneable{
 		public string idQueue;
@@ -114,10 +120,12 @@ namespace OpenMonitoringSystem
 							var files = fqueue.GetFiles (filter).Where (f => DateTime.Now > f.LastAccessTime.AddSeconds (this.Param.TimeOutResend)).OrderBy (f => f.CreationTime);
 						foreach (FileInfo file in files) {
 							try {
-								Console.WriteLine (file.FullName + " cambia de estado a " + QueueMessageStatus.NotSent.ToString ());
+							//	Console.WriteLine (file.FullName + " cambia de estado a " + QueueMessageStatus.NotSent.ToString ());
 									var file_into_sent = file.FullName.Replace (QueueMessageStatus.Sending.ToString (), QueueMessageStatus.Sent.ToString ());
+                                    var file_into_notsent = file.FullName.Replace(QueueMessageStatus.Sending.ToString(), QueueMessageStatus.NotSent.ToString());
 
-									if(File.Exists(file_into_sent)){
+                                    if (File.Exists(file_into_sent) || File.Exists(file_into_notsent))
+                                    {
 										// El archivo ya fue enviado, se lo debe borra de la carpeta se sending
 										file.Delete();
 									}else{
@@ -125,7 +133,7 @@ namespace OpenMonitoringSystem
 									}
 										
 							} catch (Exception e) {
-								Console.WriteLine ("Error el archivo " + file.FullName + " no se puede mover porque ya existe. " + e.Message);
+								//Console.WriteLine ("Error el archivo " + file.FullName + " no se puede mover porque ya existe. " + e.Message);
 							}
 						}
 					}
@@ -155,16 +163,21 @@ namespace OpenMonitoringSystem
 
 				if(File.Exists(path)){
 					var new_path = Path.Combine (this.BaseConfig.QueuePath, DeviceKey, service, new_status.ToString (), idQueue + ".json");
-					File.Delete (new_path);
-					File.Move(path, new_path);	
+                    try {
+                        File.Delete(new_path);
+                        File.Move(path, new_path);
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine("El archivo " + path +" > "+e.Message);
+                    }
 				}else{
-					Console.WriteLine ("El archivo "+path+" no existe y no se puede cambiar de estado de "+current_status.ToString()+" a "+new_status.ToString());
+					//Console.WriteLine ("El archivo "+path+" no existe y no se puede cambiar de estado de "+current_status.ToString()+" a "+new_status.ToString());
 				}
 					
 		}
 				
 
-			public List<JObject> ToSend(int max_doc = 1000){
+			public List<JObject> ToSend(int max_doc = 500000){
 				var R = new List<JObject> ();
 
 				this.ResetMessageToSend ();
@@ -194,13 +207,18 @@ namespace OpenMonitoringSystem
 
 				foreach(var device in d.GetDirectories()){
 						R.AddRange (this.GetIndividual (device, status));
-//						foreach(var item in this.GetIndividual (device)){
-//							if(!R.ContainsKey(item.Key)){
-//								R.Add (item.Key, item.Value);
-//							}	
-//						}
-							
-				}
+
+                        //if (R.Count > max_doc)
+                        //{
+                        //    break;
+                        //}
+                        //						foreach(var item in this.GetIndividual (device)){
+                        //							if(!R.ContainsKey(item.Key)){
+                        //								R.Add (item.Key, item.Value);
+                        //							}	
+                        //						}
+
+                    }
 					
 			}
 			Console.WriteLine ("Documentos para enviar "+R.Count.ToString());
@@ -211,17 +229,33 @@ namespace OpenMonitoringSystem
 				var R = new  List<JObject> ();
 				foreach(FileInfo file in fsi )
 				{
-					R.Add (getAnyLocalObject<JObject>(file.FullName));
-//					foreach(var item in this.GetFile(file.FullName)){
-//						R.Add (item.Key ,item.Value);
-//					}
+                    var obj = getAnyLocalObject<JObject>(file.FullName);
 
-					//R.AddRange (this.GetFile(file.FullName));
-//					if(R.Count >= this.MaxToSend){
-//						break;
-//					}
-				}
-				return R;
+                    if (!object.Equals(obj, null) && obj.Count > 0) {
+                        R.Add(obj);
+                    } else {
+                        //Console.WriteLine(obj.Count.ToString());
+                        try {
+                            file.Delete();
+                        }
+                        catch (Exception e) {
+                            Console.WriteLine(e.ToString());
+                        }
+                    }
+
+                    
+                    
+
+ 
+
+                    //					foreach(var item in this.GetFile(file.FullName)){
+                    //						R.Add (item.Key ,item.Value);
+                    //					}
+
+                    //R.AddRange (this.GetFile(file.FullName));
+
+                }
+                return R;
 			}
 
 			public List<JObject> GetIndividual(DirectoryInfo dir, QueueMessageStatus status){
@@ -230,7 +264,7 @@ namespace OpenMonitoringSystem
 
 				foreach(var dir_status_queue in dir.GetDirectories(status.ToString())){
 
-					Console.WriteLine ("");
+					//Console.WriteLine ("");
 
 					var fs = dir_status_queue.GetFileSystemInfos("*.json"); //Getting Text files
 					var orderedFiles = fs.OrderBy(f => f.CreationTime);
